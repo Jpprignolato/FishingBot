@@ -1,5 +1,3 @@
-package bot;
-
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.util.concurrent.*;
@@ -15,6 +13,46 @@ public class BotController {
     private boolean running = false;
 
     private Runnable onCycleStartCallback; // Novo callback
+
+    private final Point[] lootPoints = new Point[4];
+    private ScheduledExecutorService lootScheduler;
+
+
+    public void setLootPoint(int index, Point p) {
+        if (index >= 0 && index < 4) {
+            lootPoints[index] = p;
+        }
+    }
+
+    public void startLootLoop() {
+        if (lootScheduler != null && !lootScheduler.isShutdown()) return;
+
+        lootScheduler = Executors.newSingleThreadScheduledExecutor();
+
+        lootScheduler.scheduleAtFixedRate(new Runnable() {
+            int index = 0;
+
+            @Override
+            public void run() {
+                if (lootPoints[index] != null) {
+                    try {
+                        moveAndClick(lootPoints[index], InputEvent.BUTTON3_DOWN_MASK); // agora com clique direito
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+                index = (index + 1) % 4;
+            }
+        }, 0, 2, TimeUnit.SECONDS);
+    }
+
+
+    public void stopLootLoop() {
+        if (lootScheduler != null) {
+            lootScheduler.shutdownNow();
+        }
+    }
+
 
     public BotController() throws AWTException {
         this.robot = new Robot();

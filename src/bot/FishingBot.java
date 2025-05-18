@@ -1,5 +1,3 @@
-package bot;
-
 import java.awt.*;
 
 public class FishingBot {

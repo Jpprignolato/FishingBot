@@ -1,7 +1,9 @@
-package bot;
-
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.KeyboardFocusManager;
+import java.awt.KeyEventDispatcher;
+
 
 public class BotUI extends JFrame {
 
@@ -16,6 +18,9 @@ public class BotUI extends JFrame {
     private Point fishingRodPoint = null;
     private Point riverPoint = null;
 
+    private final Point[] lootPoints = new Point[4];
+
+
     public BotUI(BotController botController) {
         this.botController = botController;
 
@@ -29,6 +34,18 @@ public class BotUI extends JFrame {
         JButton btnSelectRiver = new JButton("Selecionar Rio");
         JButton btnStartStop = new JButton("Iniciar Bot");
 
+        JButton btnStartLoot = new JButton("Iniciar Loot");
+        JButton btnLoot1 = new JButton("Area do Loot 1");
+        JButton btnLoot2 = new JButton("Area do Loot 2");
+        JButton btnLoot3 = new JButton("Area do Loot 3");
+        JButton btnLoot4 = new JButton("Area do Loot 4");
+
+        add(btnLoot1);
+        add(btnLoot2);
+        add(btnLoot3);
+        add(btnLoot4);
+        add(btnStartLoot);
+
         statusLabel = new JLabel("Posições não definidas.");
 
         add(btnSelectRod);
@@ -37,6 +54,30 @@ public class BotUI extends JFrame {
         add(statusLabel);
         add(timerLabel);
 
+        btnStartLoot.addActionListener(e -> {
+            botController.startLootLoop();
+            JOptionPane.showMessageDialog(this, "Loop de Loot iniciado.");
+        });
+
+        btnLoot1.addActionListener(e -> {
+            JOptionPane.showMessageDialog(this, "Posicione o mouse na AREA DE LOOT 1 e clique OK.");
+            botController.setLootPoint(0, MouseInfo.getPointerInfo().getLocation());
+        });
+
+        btnLoot2.addActionListener(e -> {
+            JOptionPane.showMessageDialog(this, "Posicione o mouse na AREA DE LOOT 2 e clique OK.");
+            botController.setLootPoint(1, MouseInfo.getPointerInfo().getLocation());
+        });
+
+        btnLoot3.addActionListener(e -> {
+            JOptionPane.showMessageDialog(this, "Posicione o mouse na AREA DE LOOT 3 e clique OK.");
+            botController.setLootPoint(2, MouseInfo.getPointerInfo().getLocation());
+        });
+
+        btnLoot4.addActionListener(e -> {
+            JOptionPane.showMessageDialog(this, "Posicione o mouse na AREA DE LOOT 4 e clique OK.");
+            botController.setLootPoint(3, MouseInfo.getPointerInfo().getLocation());
+        });
 
         btnSelectRod.addActionListener(e -> {
             JOptionPane.showMessageDialog(this, "Posicione o mouse sobre a VARA e clique OK.");
@@ -73,7 +114,25 @@ public class BotUI extends JFrame {
         // Informa ao controller para reiniciar o timer a cada ciclo
         botController.setOnCycleStartCallback(() -> secondsLeft = 7 * 60);
 
+
         setVisible(true);
+
+        // Atalho global para ESC fechar o bot, mesmo minimizado
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
+            @Override
+            public boolean dispatchKeyEvent(KeyEvent e) {
+                if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    SwingUtilities.invokeLater(() -> {
+                        if (botController.isRunning()) {
+                            botController.stopBot();
+                        }
+                        dispose();
+                    });
+                    return true; // evento consumido, não propaga
+                }
+                return false; // deixa outros eventos seguirem
+            }
+        });
     }
 
     private void updateStatus() {
